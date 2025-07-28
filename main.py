@@ -40,12 +40,11 @@ def save_from(message):
     # Отправляем видео в Telegram
     try:
         with open(file_path, 'rb') as video:
-            bot.send_video(chat_id, video)
+            bot.send_document(chat_id, video)
     except Exception as e:
         bot.reply_to(message, f"Ошибка при отправке видео: {e}")
     finally:
         # Удаляем файл после отправки (опционально)
-        import os
         if os.path.exists(file_path):
             os.remove(file_path)
 
