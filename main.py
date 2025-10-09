@@ -2,9 +2,11 @@ print('Start')
 
 import os
 import telebot
+from telebot.apihelper import ApiTelegramException
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 import logging
+import time
 
 logging.basicConfig(filename='/home/curiosity/.telebot.log', level=logging.INFO)
 
@@ -59,9 +61,22 @@ def download_youtube_video(url):
     except Exception as e:
         return None, f"Произошла ошибка: {e}"
 
+def main():
+    while True:
+        try:
+            logging.info("Starting bot polling...")
+            bot.polling(none_stop=False, interval=1, timeout=20)
+        except ApiTelegramException as e:
+            if e.error_code == 429:
+                retry_after = e.result_json.get('parameters', {}).get('retry_after', 5)
+                logging.warning(f"Rate limit exceeded, retrying after {retry_after} seconds")
+                time.sleep(retry_after + 1)
+            else:
+                logging.error(f"API error: {e}")
+                time.sleep(15)
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            time.sleep(15)
+
 if __name__ == '__main__':
-    try:
-        logging.info("Запуск бота...")
-        bot.polling()
-    except (KeyboardInterrupt, SystemExit):
-        pass
+    main()
